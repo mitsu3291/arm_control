@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from math import *
 import matplotlib.animation as animation
+import csv
 
 # ヤコビ行列の逆行列を求める
 def calc_yacobian_inv(phi1, phi2, phi3, l1, l2, l3):
@@ -112,12 +113,15 @@ def calc_added_angle(cur_pos, x_refs, y_refs, index, yacobian_inv):
                          [y_refs[index]],
                          [0.6]]) #αは0とする
     dif_pos = goal_pos - cur_pos # 現在位置との差
-    #print(goal_pos)
-    #print(cur_pos)
-    #print(dif_pos)
     added_angles = np.dot(yacobian_inv, dif_pos) # 加えるべき関節角度の配列
 
     return added_angles
+
+def write_csv(phi_list):
+    with open('phi_list.csv', 'a', newline="") as f:
+        writer = csv.writer(f)
+        for phis in phi_list:
+            writer.writerow(phis)
 
 if __name__ == "__main__":
     # params
@@ -149,45 +153,33 @@ if __name__ == "__main__":
     fig = plt.figure()
     flag_legend = True
 
+    phi_list = []
+
     # iteration
     for i in range(0,req_t):
-        print("iter :" +str(i))
+        phi_list.append([phi1%(2*pi),phi2%(2*pi),phi3%(2*pi)])
         # 各関節の現在位置を計算
         cur_first_pos = calc_cur_first_pos(l1,phi1)
         cur_second_pos = calc_cur_second_pos(l1,l2,phi1,phi2)
         cur_hand_pos = calc_cur_hand_pos(l1,l2,l3,phi1,phi2,phi3)
-        #print("x_dif : " + str(x_refs[i]-cur_hand_pos[0][0])) 
-        #print("y_dif : " + str(y_refs[i]-cur_hand_pos[1][0]))
 
         # 目標値との誤差  適当に初期化
         error1 = 2
         error2 = 2
-        j = 0
         sleepTime = 0.01
 
-        if i < 56700:
-            while (abs(error1) > 1 or abs(error2) > 1):
-                # ヤコビ逆行列を計算し、関節を追加する
-                yacobian_inv = calc_yacobian_inv(l1,l2,l3,phi1,phi2,phi3)
-                added_angles = calc_added_angle(cur_hand_pos, x_refs, y_refs, i, yacobian_inv)
-
-                # チューニングゲイン
-                K = 1
-                phi1 += K*added_angles[0][0]
-                phi2 += K*added_angles[1][0]
-                phi3 += K*added_angles[2][0]
-
-                cur_hand_pos = calc_cur_hand_pos(l1,l2,l3,phi1,phi2,phi3)
-                error1 = x_refs[i] - cur_hand_pos[0][0]
-                error2 = y_refs[i] - cur_hand_pos[1][0]
-                j += 1
-            """
-            if j < 10:
-                break
-                print("x_dif : " + str(x_refs[i]-cur_hand_pos[0][0])) 
-                print("y_dif : " + str(y_refs[i]-cur_hand_pos[1][0]))
-                print("a_dif : " + str(0-cur_hand_pos[2][0]))
-            """
+        while (abs(error1) > 1 or abs(error2) > 1):
+            # ヤコビ逆行列を計算し、関節を追加する
+            yacobian_inv = calc_yacobian_inv(l1,l2,l3,phi1,phi2,phi3)
+            added_angles = calc_added_angle(cur_hand_pos, x_refs, y_refs, i, yacobian_inv)
+            # チューニングゲイン
+            K = 1
+            phi1 += K*added_angles[0][0]
+            phi2 += K*added_angles[1][0]
+            phi3 += K*added_angles[2][0]
+            cur_hand_pos = calc_cur_hand_pos(l1,l2,l3,phi1,phi2,phi3)
+            error1 = x_refs[i] - cur_hand_pos[0][0]
+            error2 = y_refs[i] - cur_hand_pos[1][0]
 
         #プロット用 遅くなるので10回に1回表示
         if i%10 == 0:
@@ -215,8 +207,10 @@ if __name__ == "__main__":
             flag_legend = False
         """
 
+    write_csv(phi_list)
+    #print(phi_list)
 
-    ani = animation.ArtistAnimation(fig, ims, interval=1)
+    #ani = animation.ArtistAnimation(fig, ims, interval=1)
     #ani.save('yacobi_line_compliance_3link_02.gif', writer='pillow', fps=50)
-    fig.show()
+    #fig.show()
     print("done")
