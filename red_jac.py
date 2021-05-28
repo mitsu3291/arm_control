@@ -6,16 +6,17 @@ import csv
 import time
 
 # ヤコビ行列の疑似逆行列を求める
-def calc_jacobian_inv(phi1, phi2, phi3, l1, l2, l3):
+def calc_jacobian_inv(phi1, phi2, phi3, l1, l2, l3,error1, error2):
     # 冗長なので2*3行列
     jac = np.array([[-l1*sin(phi1) - l2*sin(phi1+phi2) - l3*sin(phi1+phi2+phi3),-l2*sin(phi1+phi2) - l3*sin(phi1+phi2+phi3),-l3*sin(phi1+phi2+phi3)],
                          [l1*cos(phi1) + l2*cos(phi1+phi2) + l3*cos(phi1+phi2+phi3),l2*cos(phi1+phi2) + l3*cos(phi1+phi2+phi3),l3*cos(phi1+phi2+phi3)]])
 
-    eps = 1e-4
+    eps = 1e-8
     eps_ = np.array([eps, eps])
     eps_diag = np.diag(eps_)
     try:
         jac_inv = jac.transpose() @ np.linalg.inv(jac @ jac.transpose() + eps_diag) #ヤコビ行列の逆行列を求める
+        #jac_inv = jac.transpose() @ np.linalg.inv(jac @ jac.transpose())
     except:
         print("計算不可能です")
 
@@ -86,7 +87,7 @@ def calc_added_angle(cur_pos, x_refs, y_refs, index, yacobian_inv):
     return added_angles
 
 def write_csv(phi_list):
-    with open('red_jac_phi_list.csv', 'a', newline="") as f:
+    with open('red_jac_phi_ver2_list.csv', 'a', newline="") as f:
         writer = csv.writer(f)
         for phis in phi_list:
             writer.writerow(phis)
@@ -109,9 +110,9 @@ if __name__ == "__main__":
 
     # 直線軌道用
     start = [cur_hand_pos[0][0], cur_hand_pos[1][0]]
-    middle = [cur_hand_pos[0][0] + 200, cur_hand_pos[1][0]]
-    end = [cur_hand_pos[0][0] + 200, cur_hand_pos[1][0] - 150]
-    add_mid = 200
+    middle = [cur_hand_pos[0][0] + 215, cur_hand_pos[1][0] + 5]
+    end = [cur_hand_pos[0][0] + 220, cur_hand_pos[1][0] - 150]
+    add_mid = 220
     add_end = 150
     x_refs, y_refs = make_orbit(start, middle, end, add_mid, add_end)
 
@@ -160,9 +161,14 @@ if __name__ == "__main__":
         error2 = 2
         sleepTime = 0.01
 
+        fin_flag = False
+        j = 0
         while (abs(error1) > 1 or abs(error2) > 1):
+            if j == 10000:
+                fin_flag = True
+                break
             # ヤコビ逆行列を計算し、関節を追加する
-            yacobian_inv = calc_jacobian_inv(l1,l2,l3,phi1,phi2,phi3)
+            yacobian_inv = calc_jacobian_inv(l1,l2,l3,phi1,phi2,phi3, error1,error2)
             added_angles = calc_added_angle(cur_hand_pos, x_refs, y_refs, i, yacobian_inv)
             # チューニングゲイン
             K = 1
@@ -172,14 +178,15 @@ if __name__ == "__main__":
             cur_hand_pos = calc_cur_hand_pos(l1,l2,l3,phi1,phi2,phi3)
             error1 = x_refs[i] - cur_hand_pos[0][0]
             error2 = y_refs[i] - cur_hand_pos[1][0]
+            j += 1
 
         #プロット用 遅くなるので10回に1回表示
-        if i%5 == 0:
+        if i%1 == 0:
             im = plt.plot([0,cur_first_pos[0],cur_second_pos[0],cur_hand_pos[0][0]],[0,cur_first_pos[1],cur_second_pos[1],cur_hand_pos[1][0]],'b-o',label="robot arm",color="m")
             ims.append(im)
             #plt.plot([0,cur_first_pos[0],cur_second_pos[0],cur_hand_pos[0][0]],[0,cur_first_pos[1],cur_second_pos[1],cur_hand_pos[1][0]],'b-o',label="robot arm",color="m")
             #plt.plot(x_refs,y_refs,label="target trajectory")
-            #plt.xlim(-170,170)
+            #plt.xlim(-170,250)
             #plt.ylim(-30,350)
             #plt.axes().set_aspect('equal')
             #plt.legend()
@@ -190,18 +197,21 @@ if __name__ == "__main__":
 
         if flag_legend: # 一回のみ凡例を描画
             plt.plot(x_refs,y_refs,label="target trajectory")
-            plt.xlim(-170,170)
+            plt.xlim(-170,250)
             plt.ylim(-30,350)
             plt.axes().set_aspect('equal')
             plt.legend()
             flag_legend = False
+        
+        if fin_flag:
+            break
 
     write_csv(phi_list)
-    #print(phi_list)
+    print(phi_list)
     elapsed_time = time.time() - start_time
     print ("elapsed_time:{0}".format(elapsed_time) + "[sec]")
 
     ani = animation.ArtistAnimation(fig, ims, interval=1)
-    ani.save('red_jac_able.mp4', writer='ffmpeg',fps=10, dpi=300)
+    ani.save('sim_red_jac_able_singular.mp4', writer='ffmpeg',fps=10, dpi=300)
     fig.show()
     print("done")
