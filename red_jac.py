@@ -11,7 +11,7 @@ def calc_jacobian_inv(phi1, phi2, phi3, l1, l2, l3,error1, error2):
     jac = np.array([[-l1*sin(phi1) - l2*sin(phi1+phi2) - l3*sin(phi1+phi2+phi3),-l2*sin(phi1+phi2) - l3*sin(phi1+phi2+phi3),-l3*sin(phi1+phi2+phi3)],
                          [l1*cos(phi1) + l2*cos(phi1+phi2) + l3*cos(phi1+phi2+phi3),l2*cos(phi1+phi2) + l3*cos(phi1+phi2+phi3),l3*cos(phi1+phi2+phi3)]])
 
-    eps = 1e-8
+    eps = 1e-4
     eps_ = np.array([eps, eps])
     eps_diag = np.diag(eps_)
     try:
@@ -95,9 +95,14 @@ def write_csv(phi_list):
 if __name__ == "__main__":
     start_time = time.time()
     # params
+    """
     phi1 = 1.8
     phi2 = 0.5
     phi3 = -0.5
+    """
+    phi1 = 2.2
+    phi2 = -0.4
+    phi3 = -0.1
 
     # リンクの長さ
     l1 = 83
@@ -110,10 +115,10 @@ if __name__ == "__main__":
 
     # 直線軌道用
     start = [cur_hand_pos[0][0], cur_hand_pos[1][0]]
-    middle = [cur_hand_pos[0][0] + 215, cur_hand_pos[1][0] + 5]
-    end = [cur_hand_pos[0][0] + 220, cur_hand_pos[1][0] - 150]
-    add_mid = 220
-    add_end = 150
+    middle = [cur_hand_pos[0][0] + 100, cur_hand_pos[1][0]]
+    end = [cur_hand_pos[0][0] + 180, cur_hand_pos[1][0]]
+    add_mid = 200
+    add_end = 200
     x_refs, y_refs = make_orbit(start, middle, end, add_mid, add_end)
 
     # 描画用
@@ -125,6 +130,7 @@ if __name__ == "__main__":
 
     # iteration
     for i in range(0,add_mid+add_end):
+        """
         tmp1 = phi1%(2*pi)
         tmp2 = phi2%(2*pi)
         tmp3 = phi3%(2*pi) 
@@ -151,6 +157,7 @@ if __name__ == "__main__":
             print(tmp3)
             exit()
         phi_list.append([tmp1,tmp2,tmp3])
+        """
         # 各関節の現在位置を計算
         cur_first_pos = calc_cur_first_pos(l1,phi1)
         cur_second_pos = calc_cur_second_pos(l1,l2,phi1,phi2)
@@ -168,7 +175,7 @@ if __name__ == "__main__":
                 fin_flag = True
                 break
             # ヤコビ逆行列を計算し、関節を追加する
-            yacobian_inv = calc_jacobian_inv(l1,l2,l3,phi1,phi2,phi3, error1,error2)
+            yacobian_inv = calc_jacobian_inv(l1,l2,l3,phi1,phi2,phi3,error1,error2)
             added_angles = calc_added_angle(cur_hand_pos, x_refs, y_refs, i, yacobian_inv)
             # チューニングゲイン
             K = 1
@@ -180,21 +187,37 @@ if __name__ == "__main__":
             error2 = y_refs[i] - cur_hand_pos[1][0]
             j += 1
 
+        print([phi1,phi2,phi3])
+        tmp1 = phi1 % (2*pi)
+        tmp2 = phi2 % (2*pi)
+        tmp3 = phi3 % (2*pi)
+        if tmp1 > pi:
+            tmp1 -= 2*pi
+        if tmp2 > pi:
+            tmp2 -= 2*pi
+        if tmp3 > pi:
+            tmp3 -= 2*pi
+        print([tmp1,tmp2,tmp3])
+
+        if i == 2:
+            exit()
+
         #プロット用 遅くなるので10回に1回表示
         if i%1 == 0:
-            im = plt.plot([0,cur_first_pos[0],cur_second_pos[0],cur_hand_pos[0][0]],[0,cur_first_pos[1],cur_second_pos[1],cur_hand_pos[1][0]],'b-o',label="robot arm",color="m")
-            ims.append(im)
-            #plt.plot([0,cur_first_pos[0],cur_second_pos[0],cur_hand_pos[0][0]],[0,cur_first_pos[1],cur_second_pos[1],cur_hand_pos[1][0]],'b-o',label="robot arm",color="m")
-            #plt.plot(x_refs,y_refs,label="target trajectory")
-            #plt.xlim(-170,250)
-            #plt.ylim(-30,350)
-            #plt.axes().set_aspect('equal')
-            #plt.legend()
-            #flag_legend = False
-            #plt.draw()
-            #plt.pause(sleepTime)
-            #plt.cla()
+            #im = plt.plot([0,cur_first_pos[0],cur_second_pos[0],cur_hand_pos[0][0]],[0,cur_first_pos[1],cur_second_pos[1],cur_hand_pos[1][0]],'b-o',label="robot arm",color="m")
+            #ims.append(im)
+            plt.plot([0,cur_first_pos[0],cur_second_pos[0],cur_hand_pos[0][0]],[0,cur_first_pos[1],cur_second_pos[1],cur_hand_pos[1][0]],'b-o',label="robot arm",color="m")
+            plt.plot(x_refs,y_refs,label="target trajectory")
+            plt.xlim(-170,250)
+            plt.ylim(-30,350)
+            plt.axes().set_aspect('equal')
+            plt.legend()
+            flag_legend = False
+            plt.draw()
+            plt.pause(sleepTime)
+            plt.cla()
 
+        """
         if flag_legend: # 一回のみ凡例を描画
             plt.plot(x_refs,y_refs,label="target trajectory")
             plt.xlim(-170,250)
@@ -202,16 +225,17 @@ if __name__ == "__main__":
             plt.axes().set_aspect('equal')
             plt.legend()
             flag_legend = False
+        """
         
         if fin_flag:
             break
 
-    write_csv(phi_list)
-    print(phi_list)
+    #write_csv(phi_list)
+    #print(phi_list)
     elapsed_time = time.time() - start_time
     print ("elapsed_time:{0}".format(elapsed_time) + "[sec]")
 
-    ani = animation.ArtistAnimation(fig, ims, interval=1)
-    ani.save('sim_red_jac_able_singular.mp4', writer='ffmpeg',fps=10, dpi=300)
+    #ani = animation.ArtistAnimation(fig, ims, interval=1)
+    #ani.save('sim_red_jac_able_singular.mp4', writer='ffmpeg',fps=10, dpi=300)
     fig.show()
     print("done")
