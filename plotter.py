@@ -87,32 +87,38 @@ if __name__ == "__main__":
     flag_legend = True
 
     # 解析、ヤコビ
-    """
     req_t = 200
     phi1 = 0.8
     phi2 = -0.1
     phi3 = 0.7
 
-    cur_hand_pos = calc_cur_hand_pos(l1,l2,l3,phi1,phi2,phi3)
+    # cannot
+    req_t = 200
+    phi1 = 0.056246
+    phi2 = -0.751651
+    phi3 = -0.025566
+
+    cur_hand_pos = calc_cur_hand_pos(l1,l2,l3,pi/2 - phi1,phi2,phi3)
     start = [cur_hand_pos[0][0], cur_hand_pos[1][0]]
     end = [cur_hand_pos[0][0], cur_hand_pos[1][0] - 140]
     x_refs, y_refs = calc_line_coodinate_bytime(start, end, req_t)
-    """
 
     # 冗長ヤコビ
+    """
     phi1 = 1.8
     phi2 = 0.5
     phi3 = -0.5
 
     cur_hand_pos = calc_cur_hand_pos(l1,l2,l3,phi1,phi2,phi3)
-    start = [cur_hand_pos[0][0]+20, cur_hand_pos[1][0]]
-    middle = [cur_hand_pos[0][0] + 200, cur_hand_pos[1][0]] # +215 +5
-    end = [cur_hand_pos[0][0] + 200, cur_hand_pos[1][0] - 150] # +220 -150
-    add_mid = 200
-    add_end = 150
+    start = [cur_hand_pos[0][0], cur_hand_pos[1][0]]
+    middle = [cur_hand_pos[0][0], cur_hand_pos[1][0] -25] # +215 +5
+    end = [cur_hand_pos[0][0], cur_hand_pos[1][0] -50] # +220 -150
+    add_mid = 25
+    add_end = 25
     x_refs, y_refs = make_orbit(start, middle, end, add_mid, add_end)
+    """
 
-    f = open('red_jac_pos.txt', 'r')
+    f = open('cannot.txt', 'r')
     datalist = f.readlines()
     f.close()
 
@@ -126,16 +132,18 @@ if __name__ == "__main__":
 
         if flag_legend: # 一回のみ凡例を描画
             plt.plot(x_refs,y_refs,label="target trajectory")
-            plt.xlim(-170,170) # 冗長ヤコビ
-            plt.ylim(-30,350) # 冗長ヤコビ
+            #plt.xlim(-170,170) # 冗長ヤコビ
+            #plt.ylim(-30,350) # 冗長ヤコビ
             #plt.xlim(-70,230) # 解析、ヤコビ
             #plt.ylim(-30,270) # 解析、ヤコビ
+            plt.xlim(-30,300) # cannot
+            plt.ylim(-30,320) # cannot
             plt.axes().set_aspect('equal')
             plt.legend(loc='upper left')
-            plt.title('Levenberg-Marquardt Method',loc='center')
+            plt.title('Numerical Solution',loc='center')
             flag_legend = False
 
     ani = animation.ArtistAnimation(fig, ims, interval=1000)
-    ani.save('real_LM.mp4', writer='ffmpeg',fps=13.5, dpi=300)
+    ani.save('real_cannot_jac.mp4', writer='ffmpeg',fps=14.5, dpi=300)
     fig.show()
     print("done")

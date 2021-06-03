@@ -170,6 +170,15 @@ if __name__ == "__main__":
 
         fin_flag = False
         j = 0
+        if i == 1:
+            phi1 = 2.2 
+            phi2 = -0.40000000000000036
+            phi3 = -0.09999999999999964
+            """
+            phi1 = 2.2 
+            phi2 = -0.4
+            phi3 = -0.1
+            """
         while (abs(error1) > 1 or abs(error2) > 1):
             if j == 10000:
                 fin_flag = True
@@ -179,9 +188,9 @@ if __name__ == "__main__":
             added_angles = calc_added_angle(cur_hand_pos, x_refs, y_refs, i, yacobian_inv)
             # チューニングゲイン
             K = 1
-            phi1 += K*added_angles[0][0]
-            phi2 += K*added_angles[1][0]
-            phi3 += K*added_angles[2][0]
+            phi1 += K*(added_angles[0][0])
+            phi2 += K*(added_angles[1][0])
+            phi3 += K*(added_angles[2][0])
             cur_hand_pos = calc_cur_hand_pos(l1,l2,l3,phi1,phi2,phi3)
             error1 = x_refs[i] - cur_hand_pos[0][0]
             error2 = y_refs[i] - cur_hand_pos[1][0]
@@ -199,10 +208,16 @@ if __name__ == "__main__":
             tmp3 -= 2*pi
         print([tmp1,tmp2,tmp3])
 
-        if i == 2:
+        # test
+        if i == 1:
             exit()
 
+        #phi1 = tmp1
+        #phi2 = tmp2
+        #phi3 = tmp3
+
         #プロット用 遅くなるので10回に1回表示
+        """
         if i%1 == 0:
             #im = plt.plot([0,cur_first_pos[0],cur_second_pos[0],cur_hand_pos[0][0]],[0,cur_first_pos[1],cur_second_pos[1],cur_hand_pos[1][0]],'b-o',label="robot arm",color="m")
             #ims.append(im)
@@ -216,6 +231,7 @@ if __name__ == "__main__":
             plt.draw()
             plt.pause(sleepTime)
             plt.cla()
+        """
 
         """
         if flag_legend: # 一回のみ凡例を描画
@@ -228,8 +244,10 @@ if __name__ == "__main__":
         """
         
         if fin_flag:
+            print("収束できぬ")
             break
 
+    """
     #write_csv(phi_list)
     #print(phi_list)
     elapsed_time = time.time() - start_time
@@ -239,3 +257,4 @@ if __name__ == "__main__":
     #ani.save('sim_red_jac_able_singular.mp4', writer='ffmpeg',fps=10, dpi=300)
     fig.show()
     print("done")
+    """
