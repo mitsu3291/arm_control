@@ -4,11 +4,6 @@
 import rospy
 from math import *
 from std_msgs.msg import Float64
-from dynamixel_msgs.msg import JointState
-import numpy as np 
-import matplotlib.animation as animation
-import time
-import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
     # initialization
@@ -30,23 +25,11 @@ if __name__ == '__main__':
     joint4_pub.publish(-0.5)
     joint5_pub.publish(0.5)
 
+    #初期位置に戻す
     while not rospy.is_shutdown():
-        #初期位置に戻す
         joint1_pub.publish(0.0)
-        joint2_pub.publish(pi/2 - 1.536922657419879)
-        joint3_pub.publish(-0.7235753483252765)
-        joint4_pub.publish(-0.013347309094605464)
-        #joint2_pub.publish(pi/2 - 1.2)
-        #joint3_pub.publish(-0.7)
-        #joint4_pub.publish(-0.1)
-        #joint2_pub.publish(pi/2 - 1.4)
-        #joint3_pub.publish(0.4)
-        #joint4_pub.publish(0.2)
-        #joint2_pub.publish(-0.542007)
-        #joint3_pub.publish(-0.659612)
-        #joint4_pub.publish(0.388608)
-        #joint2_pub.publish(0.4)
-        #joint3_pub.publish(0.5)
-        #joint4_pub.publish(-0.388608)
+        joint2_pub.publish(pi/2 - 1.8)
+        joint3_pub.publish(0.5)
+        joint4_pub.publish(-0.5)
         joint5_pub.publish(0.5)
         rate.sleep()
