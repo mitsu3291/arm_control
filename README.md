@@ -7,7 +7,7 @@
 ![system](/src/figure/ana.png)
 
 <br>**Result**<br>
-![result](/src/figure/ana.gif)
+![result](/src/figure/ana_real.gif)
 
 ### **Numerical Solution**
 **The system is like :**<br>
