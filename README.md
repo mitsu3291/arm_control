@@ -1,6 +1,7 @@
 # **Control 4DOF Manipulator**
 ## **Point To Point Control**
-### <u>**Analytical Solution**</u>
+### <u>**Analytical Solution**</u><br>
+**Inverse Kinematics**<br>
 ![result](/src/figure/pick.gif)
 ## **Continuous Path Control**
 ### <u>**Analytical Solution**</u>
