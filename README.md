@@ -1,24 +1,24 @@
 # **Control 4DOF Manipulator**
 ## **Point To Point Control**
-### **Analytical Solution**
+### <u>**Analytical Solution**</u>
 **Result** <br>
 ![result](/src/figure/pick.gif)
 ## **Continuous Path Control**
-### **Analytical Solution**
+### <u>**Analytical Solution**</u>
 **The system is like :**<br>
 ![system](/src/figure/ana.png)
 
 <br>**Result -** [simple_ik.py](https://github.com/mitsumaru3291/arm_control/blob/master/src/analytical_solver/simple_ik.py "simple_ik")<br>
 ![result](/src/figure/ana_real.gif)
 
-### **__Numerical Solution__**
+### <u>**Numerical Solution**</u>
 **The system is like :**<br>
 ![system](/src/figure/num.png)<br>
 
-**Result -** [numerical_calc.py](https://github.com/mitsumaru3291/arm_control/blob/master/src/numerical_solver/numerical_calc.py "numerical_solver")<br>
-![result](/src/figure/num_real.gif)<br>
+**Result : Newton-Raphson-Method (** [numerical_calc.py](https://github.com/mitsumaru3291/arm_control/blob/master/src/numerical_solver/numerical_calc.py "numerical_solver") **)** <br>
+![result](/src/figure/num_real.gif)
 
-**Result -** [LM_method.py](https://github.com/mitsumaru3291/arm_control/blob/master/src/numerical_solver/LM_method.py "LM_method")<br>
+**Result : Levenberg-Marquardt-Method (** [LM_method.py](https://github.com/mitsumaru3291/arm_control/blob/master/src/numerical_solver/LM_method.py "LM_method") **)** <br>
 ![result](/src/figure/LM.gif)
 
 ## **Reference**
