@@ -1,0 +1,31 @@
+<launch>
+<!--Start tilt joint controller-->
+<rosparam file="$(find my_dynamixel_tutorial)/tilt1.yaml" command="load"/>
+<node name="tilt1_controller_spawner" pkg="dynamixel_controllers" type="controller_spawner.py"
+args="--manager=dxl_manager --port pan_tilt_port tilt1_controller"
+output="screen"/>
+
+<!--Start tilt joint controller-->
+<rosparam file="$(find my_dynamixel_tutorial)/tilt2.yaml" command="load"/>
+<node name="tilt2_controller_spawner" pkg="dynamixel_controllers" type="controller_spawner.py"
+args="--manager=dxl_manager --port pan_tilt_port tilt2_controller"
+output="screen"/>
+
+<!--Start tilt joint controller-->
+<rosparam file="$(find my_dynamixel_tutorial)/tilt3.yaml" command="load"/>
+<node name="tilt3_controller_spawner" pkg="dynamixel_controllers" type="controller_spawner.py"
+args="--manager=dxl_manager --port pan_tilt_port tilt3_controller"
+output="screen"/>
+
+<!--Start tilt joint controller-->
+<rosparam file="$(find my_dynamixel_tutorial)/tilt4.yaml" command="load"/>
+<node name="tilt4_controller_spawner" pkg="dynamixel_controllers" type="controller_spawner.py"
+args="--manager=dxl_manager --port pan_tilt_port tilt4_controller"
+output="screen"/>
+
+<!--Start tilt joint controller-->
+<rosparam file="$(find my_dynamixel_tutorial)/tilt5.yaml" command="load"/>
+<node name="tilt5_controller_spawner" pkg="dynamixel_controllers" type="controller_spawner.py"
+args="--manager=dxl_manager --port pan_tilt_port tilt5_controller"
+output="screen"/>
+</launch>
