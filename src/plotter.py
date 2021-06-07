@@ -40,6 +40,31 @@ def make_line_trajectory(start, end, req_t):
     
     return x_refs, y_refs
 
+# 円の軌道を生成 始点と角度を与える
+def calc_circle_trajectory(start, theta, req_t):
+    cur_t = 0
+    x_refs = []
+    y_refs = []
+    x1 = start[0]
+    y1 = start[1]
+    x_refs.append(x1)
+    y_refs.append(y1)
+    while cur_t < req_t:
+        # 回転行列を計算
+        r_mat = np.array([[cos(theta/req_t),-sin(theta/req_t)],
+                          [sin(theta/req_t), cos(theta/req_t)]])
+        
+        x = np.array([[x1],
+                      [y1]])
+        
+        x_new = np.dot(r_mat, x)
+        x1 = x_new[0][0]
+        y1 = x_new[1][0]
+        x_refs.append(x1)
+        y_refs.append(y1)
+    
+    return x_refs, y_refs
+
 # 順運動学で第一関節の位置を計算
 def calc_cur_first_pos(l1,phi1):
     x = l1*cos(phi1)
@@ -68,7 +93,7 @@ def calc_cur_hand_pos(l1,l2,l3,phi1,phi2,phi3):
 
     return cur_hand_pos
 
-# なぜかubuntuの方でcsv書き込みができなかったのでtxtに書き込む
+# なぜかubuntuでcsv書き込みができなかったのでtxtに書き込む
 def write_txt(joint_pos):
     f = open('last_ik.txt', 'w')
     for pos in joint_pos:
