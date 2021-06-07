@@ -3,4 +3,5 @@
 * ### **Analytical Solution**
 ## **Continuous Path Control**
 * ### **Analytical Solution**
+![system](/src/figure/ana.png)
 * ### **Numerical Solution**
