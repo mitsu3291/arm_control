@@ -3,8 +3,18 @@
 ### **Analytical Solution**
 ## **Continuous Path Control**
 ### **Analytical Solution**
-**System is like:**<br>
+**The system is like :**<br>
 ![system](/src/figure/ana.png)
+
+<br>**Result**<br>
+![result](/src/figure/ana.gif)
+
 ### **Numerical Solution**
-**System is like:**<br>
+**The system is like :**<br>
 ![system](/src/figure/num.png)
+
+<br>**Result**<br>
+![result](/src/figure/num_real.gif)
+
+<br>**Result**<br>
+![result](/src/figure/LM.gif)
