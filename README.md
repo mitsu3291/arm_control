@@ -6,19 +6,19 @@
 ## **Continuous Path Control**
 ### <u>**Analytical Solution**</u>
 **The system is like :**<br>
-![system](/src/figure/ana.png)
+![system](/src/figure/ana.png)<br>
 
-<br>**Result -** [simple_ik.py](https://github.com/mitsumaru3291/arm_control/blob/master/src/analytical_solver/simple_ik.py "simple_ik")<br>
+**Result - [simple_ik.py](https://github.com/mitsumaru3291/arm_control/blob/master/src/analytical_solver/simple_ik.py "simple_ik")**<br>
 ![result](/src/figure/ana_real.gif)
 
 ### <u>**Numerical Solution**</u>
 **The system is like :**<br>
 ![system](/src/figure/num.png)<br>
 
-**Result : Newton-Raphson-Method (** [numerical_calc.py](https://github.com/mitsumaru3291/arm_control/blob/master/src/numerical_solver/numerical_calc.py "numerical_solver") **)** <br>
+**Result : Newton-Raphson-Method ( [numerical_calc.py](https://github.com/mitsumaru3291/arm_control/blob/master/src/numerical_solver/numerical_calc.py "numerical_solver") )** <br>
 ![result](/src/figure/num_real.gif)
 
-**Result : Levenberg-Marquardt-Method (** [LM_method.py](https://github.com/mitsumaru3291/arm_control/blob/master/src/numerical_solver/LM_method.py "LM_method") **)** <br>
+**Result : Levenberg-Marquardt-Method ( [LM_method.py](https://github.com/mitsumaru3291/arm_control/blob/master/src/numerical_solver/LM_method.py "LM_method") )** <br>
 ![result](/src/figure/LM.gif)
 
 ## **Reference**
