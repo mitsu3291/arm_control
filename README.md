@@ -13,8 +13,8 @@
 **The system is like :**<br>
 ![system](/src/figure/num.png)
 
-<br>**Result**<br>
+<br>**Result - **[numerical_calc.py](https://github.com/mitsumaru3291/arm_control/blob/master/src/numerical_solver/numerical_calc.py "numerical_solver")<br>
 ![result](/src/figure/num_real.gif)
 
-<br>**Result**<br>
+<br>**Result - **[LM_method.py](https://github.com/mitsumaru3291/arm_control/blob/master/src/numerical_solver/LM_method.py "LM_method")<br>
 ![result](/src/figure/LM.gif)
