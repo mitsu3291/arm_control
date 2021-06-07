@@ -5,3 +5,4 @@
 * ### **Analytical Solution**
 ![system](/src/figure/ana.png)
 * ### **Numerical Solution**
+![system](/src/figure/num.png)
