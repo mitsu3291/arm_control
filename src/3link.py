@@ -6,72 +6,25 @@ import csv
 import time
 
 # ヤコビ行列の逆行列を求める
-def calc_yacobian_inv(phi1, phi2, phi3, l1, l2, l3):
-    yacobian = np.array([[-l1*sin(phi1) - l2*sin(phi1+phi2) - l3*sin(phi1+phi2+phi3),-l2*sin(phi1+phi2) - l3*sin(phi1+phi2+phi3),-l3*sin(phi1+phi2+phi3)],
+def calc_jacobian_inv(phi1, phi2, phi3, l1, l2, l3):
+    jacobian = np.array([[-l1*sin(phi1) - l2*sin(phi1+phi2) - l3*sin(phi1+phi2+phi3),-l2*sin(phi1+phi2) - l3*sin(phi1+phi2+phi3),-l3*sin(phi1+phi2+phi3)],
                          [l1*cos(phi1) + l2*cos(phi1+phi2) + l3*cos(phi1+phi2+phi3),l2*cos(phi1+phi2) + l3*cos(phi1+phi2+phi3),l3*cos(phi1+phi2+phi3)],
                          [1,1,1]])
     try:
-        yacobian_inv = np.linalg.inv(yacobian) #ヤコビ行列の逆行列を求める
-        print(np.linalg.det(yacobian))
+        jacobian_inv = np.linalg.inv(jacobian) #ヤコビ行列の逆行列を求める
+        print(np.linalg.det(jacobian))
     except np.linalg.LinAlgError as err:
-        print("特異姿勢です")
-        """
-        if 'Singular matrix' in str(err):
-            print("特異姿勢です")
-        else:
-            raise #正則で求められないとき疑似逆行列を求める
-        """
+        print("singular position")
+        exit()
 
-    return yacobian_inv
+    return jacobian_inv
 
-# 追従させる軌道 直線 端点の2つの座標を与える.  binは時間の分割数. 各時刻における所望の座標のリストを返す(indexは分割数個)
-def calc_line_coodinate(start,end,bin):
-    x1 = start[0]
-    y1 = start[1]
-    x2 = end[0]
-    y2 = end[1]
-
-    x_refs = []
-    y_refs = []
-    for i in range(bin+1):
-        x = (x2-x1)*(i/bin) + x1
-        y = (y2-y1)*(i/bin) + y1
-        x_refs.append(x)
-        y_refs.append(y)
-
-    return x_refs, y_refs
-
-def make_orbit(start, middle, end, add_mid, add_end):
+# 直線の軌道を生成 直線 端点の2つの座標を与える. 
+def make_line_trajectory(start, end, req_t):
     cur_t = 0
     x_refs = []
     y_refs = []
-    while(cur_t < add_mid):
-        #s = 6*(cur_t/req_t)**5 - 15*(cur_t/req_t)**4 + 10*(cur_t/req_t)**3
-        s = cur_t/add_mid
-        x_ref = start[0]*(1-s) + middle[0]*s
-        y_ref = start[1]*(1-s) + middle[1]*s
-        x_refs.append(x_ref)
-        y_refs.append(y_ref)
-        cur_t += 1
-
-    cur_t = 0
-    while(cur_t < add_end):
-        s = cur_t/add_mid
-        x_ref = middle[0]*(1-s) + end[0]*s
-        y_ref = middle[1]*(1-s) + end[1]*s
-        x_refs.append(x_ref)
-        y_refs.append(y_ref)
-        cur_t += 1
-    
-    return x_refs, y_refs
-
-# 追従させる軌道 直線 端点の2つの座標を与える.  req_tは処理時間. 各時刻における所望の座標のリストを返す(indexは分割数個)
-def calc_line_coodinate_bytime(start, end, req_t):
-    cur_t = 0
-    x_refs = []
-    y_refs = []
-    while(cur_t < req_t):
-        #s = 6*(cur_t/req_t)**5 - 15*(cur_t/req_t)**4 + 10*(cur_t/req_t)**3
+    while cur_t < req_t:
         s = cur_t/req_t
         x_ref = start[0]*(1-s) + end[0]*s
         y_ref = start[1]*(1-s) + end[1]*s
@@ -81,18 +34,19 @@ def calc_line_coodinate_bytime(start, end, req_t):
     
     return x_refs, y_refs
 
-# 追従させる軌道 円 始点と回転角を与える
-def calc_circle_coodinate(start,theta,bin):
+# 円の軌道を生成 始点と角度を与える
+def calc_circle_trajectory(start, theta, req_t):
+    cur_t = 0
     x_refs = []
     y_refs = []
     x1 = start[0]
     y1 = start[1]
     x_refs.append(x1)
     y_refs.append(y1)
-    for i in range(bin+1):
+    while cur_t < req_t:
         # 回転行列を計算
-        r_mat = np.array([[cos(theta/bin),-sin(theta/bin)],
-                          [sin(theta/bin), cos(theta/bin)]])
+        r_mat = np.array([[cos(theta/req_t),-sin(theta/req_t)],
+                          [sin(theta/req_t), cos(theta/req_t)]])
         
         x = np.array([[x1],
                       [y1]])
