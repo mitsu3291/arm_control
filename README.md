@@ -1,6 +1,8 @@
 # **Control 4DOF Manipulator**
 ## **Point To Point Control**
 ### **Analytical Solution**
+<br>**Result** <br>
+![result](/src/figure/pick.gif)
 ## **Continuous Path Control**
 ### **Analytical Solution**
 **The system is like :**<br>
@@ -18,3 +20,9 @@
 
 <br>**Result -** [LM_method.py](https://github.com/mitsumaru3291/arm_control/blob/master/src/numerical_solver/LM_method.py "LM_method")<br>
 ![result](/src/figure/LM.gif)
+
+## **Reference**
+* 細田 耕著，実践ロボット制御，オーム社，2019
+* 杉原 知道著，Levenberg-Marquardt法による可逆性を問わない逆運動学，
+    日本ロボット学会誌　Vol.29  No.3，pp.269∼277， 2011
+* 小川 鉱一ら著，初めて学ぶ基礎ロボット工学，東京電機大学出版局，1998 
