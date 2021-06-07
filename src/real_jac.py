@@ -6,19 +6,15 @@ from math import *
 from std_msgs.msg import Float64
 from dynamixel_msgs.msg import JointState
 import numpy as np 
-import matplotlib.animation as animation
 import time
-import matplotlib.pyplot as plt
 
-# 追従させる軌道 直線 端点の2つの座標を与える.  binは時間の分割数. 各時刻における所望の座標のリストを返す(indexは分割数個)
-def make_orbit(start, end, req_t):
+# 直線の軌道を生成 直線 端点の2つの座標を与える. 
+def make_line_trajectory(start, end, req_t):
     cur_t = 0
     x_refs = []
     y_refs = []
-    while(cur_t < req_t):
-        r = cur_t*(req_t**(-1))
-        #s = 6*(r)**5 - 15*(r)**4 + 10*(r)**3
-        s = r
+    while cur_t < req_t:
+        s = cur_t/req_t
         x_ref = start[0]*(1-s) + end[0]*s
         y_ref = start[1]*(1-s) + end[1]*s
         x_refs.append(x_ref)
@@ -27,20 +23,45 @@ def make_orbit(start, end, req_t):
     
     return x_refs, y_refs
 
-# ヤコビ行列の逆行列を求める
-def calc_jacobian_inv(phi1, phi2, phi3, l1, l2, l3, error_x, error_y):
+# 円の軌道を生成 始点と角度を与える
+def calc_circle_trajectory(start, theta, req_t):
+    cur_t = 0
+    x_refs = []
+    y_refs = []
+    x1 = start[0]
+    y1 = start[1]
+    x_refs.append(x1)
+    y_refs.append(y1)
+    while cur_t < req_t:
+        # 回転行列を計算
+        r_mat = np.array([[cos(theta/req_t),-sin(theta/req_t)],
+                          [sin(theta/req_t), cos(theta/req_t)]])
+        
+        x = np.array([[x1],
+                      [y1]])
+        
+        x_new = np.dot(r_mat, x)
+        x1 = x_new[0][0]
+        y1 = x_new[1][0]
+        x_refs.append(x1)
+        y_refs.append(y1)
+    
+    return x_refs, y_refs
+
+# 疑似逆行列を求める
+def calc_jacobian_inv(phi1, phi2, phi3, l1, l2, l3):
     # 冗長なので2*3行列
     jac = np.array([[-l1*sin(phi1) - l2*sin(phi1+phi2) - l3*sin(phi1+phi2+phi3),-l2*sin(phi1+phi2) - l3*sin(phi1+phi2+phi3),-l3*sin(phi1+phi2+phi3)],
                     [l1*cos(phi1) + l2*cos(phi1+phi2) + l3*cos(phi1+phi2+phi3),l2*cos(phi1+phi2) + l3*cos(phi1+phi2+phi3),l3*cos(phi1+phi2+phi3)]])
 
     eps = 1e-4
     eps_ = np.array([eps, eps])
-    eps_diag = np.diag(eps_)
+    eps_diag = np.diag(eps_) # 正則化項
     try:
         jac_inv = np.dot(jac.transpose(),np.linalg.inv(np.dot(jac,jac.transpose()) + eps_diag)) #ヤコビ行列の逆行列を求める
-        #jac_inv = jac.transpose() @ np.linalg.inv(jac @ jac.transpose())
     except:
-        print("計算不可能です")
+        print("couldn't caluculate")
+        exit()
 
     return jac_inv
 
@@ -78,8 +99,6 @@ def calc_added_angle(cur_pos, x_refs, y_refs, index, jacobian_inv):
                          [y_refs[index]]])
     cur_pos_ = np.delete(cur_pos, 2, 0) # 3行目の手先位置を削除
     dif_pos = goal_pos - cur_pos_ # 現在位置との差
-    #rospy.loginfo("dif_pos")
-    #rospy.loginfo(dif_pos)
     added_angles = np.dot(jacobian_inv, dif_pos) # 加えるべき関節角度の配列
 
     return added_angles
@@ -88,19 +107,16 @@ def calc_added_angle(cur_pos, x_refs, y_refs, index, jacobian_inv):
 def callback_joint2(data):
     global angle_2
     angle_2 = data.current_pos
-    #rospy.loginfo("2nd angle : %f", angle_2)
 
 # 3rd joint
 def callback_joint3(data):
     global angle_3
     angle_3 = data.current_pos
-    #rospy.loginfo("3nd angle : %f", angle_3)
 
 # 4th joint
 def callback_joint4(data):
     global angle_4
     angle_4 = data.current_pos
-    #rospy.loginfo("4nd angle : %f", angle_4)
 
 def write_dif_pos(params):
     f = open('dif_pos.txt', 'w')
@@ -115,7 +131,7 @@ def write_phi_list(params):
 
 if __name__ == "__main__":
     # initialization
-    rospy.init_node('jac_compl_3link')
+    rospy.init_node('LM_solver')
     rospy.loginfo("started")
 
     # 1秒あたりの送信回数
@@ -134,73 +150,41 @@ if __name__ == "__main__":
     joint4_sub = rospy.Subscriber('/tilt4_controller/state', JointState, callback_joint4)
 
     # init
-    angle_2 = 0.8
-    angle_3 = -0.1
-    angle_4 = 0.7
+    phi1 = 0.8
+    phi2 = -0.1
+    phi3 = 0.7
 
-    # adjust 右のやつ
-    phi1 = 0.056246
-    phi2 = -0.751651
-    phi3 = -0.025566
-
-    # adjust
-    """
-    phi1 = 0.363042
-    phi2 = 0.705631
-    phi3 = 0.199418
-
-    phi1 = 0.158511
-    phi2 = 0.393722
-    phi3 = 0.199418
-
-    phi1 = -0.542007
-    phi2 = -0.659612
-    phi3 = 0.388608
-
-    phi1 = 0.209644
-    phi2 = 0.393722
-    phi3 = -0.403948
-    """
+    angle_2 = 0
+    angle_3 = 0
+    angle_4 = 0
 
     # リンクの長さ
     l1 = 83
     l2 = 93.5
     l3 = 120
 
-    #sleepTime = 0.01
-    # 値を渡す
-    """
-    phi1 = 1.536922657419879
-    phi2 = -0.7235753483252765
-    phi3 = -0.013347309094605464
-    """
-
     # 初期位置
     cur_hand_pos = calc_cur_hand_pos(l1,l2,l3,pi/2 - phi1,phi2,phi3)
 
-    # 直線軌道用
-    req_t = 100 #100
+    # 直線軌道
+    req_t = 100
     start = [cur_hand_pos[0][0], cur_hand_pos[1][0]]
     end = [cur_hand_pos[0][0], cur_hand_pos[1][0]-100]
-    x_refs, y_refs = make_orbit(start,end,req_t)
+    x_refs, y_refs = make_line_trajectory(start,end,req_t)
 
-    #joint2_pub.publish(pi/2 - 1.536922657419879)
-    #joint3_pub.publish(-0.7235753483252765)
-    #joint4_pub.publish(-0.013347309094605464)
-    time.sleep(3)
+    time.sleep(1)
     tmp1 = 0
     tmp2 = 0
     tmp3 = 0
 
     while not rospy.is_shutdown():
         for i in range(1,req_t):
-            # 違う変数に値入れておかないとfor文の中で更新されてしまう
+            # 別の変数にいれて更新を防ぐ
             phi1 = pi/2 - angle_2
             phi2 = angle_3
             phi3 = angle_4
             rate.sleep()
-            #rospy.loginfo(i)
-            #rospy.loginfo([phi1,phi2,phi3])
+
             phi_list = []
             phi_list.append([str(phi1)+'\t',str(phi2)+'\t',str(phi3)+'\n'])
             # 手先の現在位置を計算
@@ -208,42 +192,26 @@ if __name__ == "__main__":
             cur_second_pos = calc_cur_second_pos(l1,l2,phi1, phi2)
             cur_hand_pos = calc_cur_hand_pos(l1,l2,l3,phi1,phi2,phi3)
 
-            # 差を出力
-            dif_poses = []
-            cur_pos_ = np.delete(cur_hand_pos, 2, 0)
-            goal_pos = np.array([[x_refs[i-1]],
-                                 [y_refs[i-1]]])
-            dif_pos = goal_pos - cur_pos_
-            rospy.loginfo([dif_pos[0][0],dif_pos[1][0]])
-            rospy.loginfo([tmp1 - phi1, tmp2 - phi2, tmp3 - phi3])
-            rospy.loginfo([tmp1, tmp2, tmp3])
-            dif_poses.append([str(dif_pos[0][0])+'\t',str(dif_pos[1][0])+'\n'])
+            # 目標値からの誤差
+            error_x = x_refs[i] - cur_hand_pos[0][0]
+            error_y = y_refs[i] - cur_hand_pos[1][0]
 
-            #rospy.loginfo(cur_hand_pos)
-            # 目標値との誤差  適当に初期化
-            error_x = x_refs[i-1] - cur_hand_pos[0][0]
-            error_y = y_refs[i-1] - cur_hand_pos[1][0]
-
-            j = 0
             while (abs(error_x) > 1 or abs(error_y) > 1):
-                j += 1
-                # ヤコビ逆行列を計算し、関節を追加する
-                jacobian_inv = calc_jacobian_inv(l1,l2,l3,phi1,phi2,phi3, error_x, error_y)
+                # ヤコビ逆行列を計算し、関節角度を追加する
+                jacobian_inv = calc_jacobian_inv(l1,l2,l3,phi1,phi2,phi3)
                 added_angles = calc_added_angle(cur_hand_pos, x_refs, y_refs, i, jacobian_inv)
+
                 # チューニングゲイン
                 K = 1
-                phi1 += K*((added_angles[0][0])%(2*pi))
-                phi2 += K*((added_angles[1][0])%(2*pi))
-                phi3 += K*((added_angles[2][0])%(2*pi))
+                phi1 += K*(added_angles[0][0])
+                phi2 += K*(added_angles[1][0])
+                phi3 += K*(added_angles[2][0])
                 cur_hand_pos = calc_cur_hand_pos(l1,l2,l3,phi1,phi2,phi3)
-                error_x = x_refs[i-1] - cur_hand_pos[0][0]
-                error_y = y_refs[i-1] - cur_hand_pos[1][0]
-                if j == 200000:
-                    print("too heavy")
-                    exit()
-            #rospy.loginfo(jacobian_inv)
-            #rospy.loginfo([phi1,phi2,phi3])
+                error_x = x_refs[i] - cur_hand_pos[0][0]
+                error_y = y_refs[i] - cur_hand_pos[1][0]
 
+
+            # 2π超えとるから修正
             tmp1 = phi1%(2*pi)
             tmp2 = phi2%(2*pi)
             tmp3 = phi3%(2*pi)
@@ -254,20 +222,15 @@ if __name__ == "__main__":
             if tmp3 > pi:
                 tmp3 -= 2*pi
 
-            # 動作できないところだったら止める
+            # 可動域外だったら終了
             if tmp1 < 0.2 or tmp2 < -3*pi/4 or tmp2 > 3*pi/4 or tmp3 < -pi/2:
                 print("cannot move")
-                print("phi1")
-                print(tmp1)
-                print("phi2")
-                print(tmp2)
-                print("phi3")
-                print(tmp3)
                 exit()
+
             joint2_pub.publish(pi/2 - tmp1)
             joint3_pub.publish(tmp2)
             joint4_pub.publish(tmp3)
-            time.sleep(2) #移動までの時間
+            time.sleep(1) #移動までの時間
 
         rospy.spin()
         exit()
